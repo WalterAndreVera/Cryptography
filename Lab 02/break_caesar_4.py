@@ -1,20 +1,23 @@
-import re
-from ngram_score import ngram_score
-fitness = ngram_score('quadgrams.txt') # load our quadgram statistics
-from pycipher import Caesar
-      
-def break_caesar(ctext):
-    # make sure ciphertext has all spacing/punc removed and is uppercase
-    ctext = re.sub('[^A-Z]','',ctext.upper())
-    # try all possible keys, return the one with the highest fitness
-    scores = []
-    for i in range(26):
-        scores.append((fitness.score(Caesar(i).decipher(ctext)),i))
-    return max(scores)
-    
-# example ciphertext
-ctext = 'YMJHFJXFWHNUMJWNXTSJTKYMJJFWQNJXYPSTBSFSIXNRUQJXYHNUMJWX'
-max_key = break_caesar(ctext)
-
-print 'best candidate with key (a,b) = '+str(max_key[1])+':'
-print Caesar(max_key[1]).decipher(ctext)
+from Crypto.Cipher import AES
+import hashlib
+import sys
+import binascii
+import Padding
+val='hello'
+password='hello'
+plaintext=val
+def encrypt(plaintext,key, mode):
+encobj = AES.new(key,mode)
+return(encobj.encrypt(plaintext))
+def decrypt(ciphertext,key, mode):
+encobj = AES.new(key,mode)
+return(encobj.decrypt(ciphertext))
+key = hashlib.sha256(password).digest()
+plaintext = Padding.appendPadding(plaintext,blocksize=Padding.AES_blocksize,mode='CMS')
+print "After padding (CMS): "+binascii.hexlify(bytearray(plaintext))
+ciphertext = encrypt(plaintext,key,AES.MODE_ECB)
+print "Cipher (ECB): "+binascii.hexlify(bytearray(ciphertext))
+plaintext = decrypt(ciphertext,key,AES.MODE_ECB)
+plaintext = Padding.removePadding(plaintext,mode='CMS')
+print " decrypt: "+plaintext
+plaintext=val
