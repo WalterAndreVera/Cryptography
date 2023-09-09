@@ -1,54 +1,89 @@
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes 
+# Import necessary modules from the cryptography library
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.backends import default_backend
-
 import hashlib
 import sys
 import binascii
 
-val='hello'
-password='hello123'
+# Define the plaintext message and password
+original_message = 'hello'
+password = 'hello123'
 
-plaintext=val
+# Set the plaintext variable to the original message
+plaintext = original_message
 
-def encrypt(plaintext,key, mode):
-    method=algorithms.AES(key)
-    cipher = Cipher(method,mode, default_backend())
+# Function to encrypt data
+def encrypt_data(data, encryption_key, encryption_mode):
+    # Create an AES encryption method with the provided key
+    encryption_method = algorithms.AES(encryption_key)
+    
+    # Create a cipher with the chosen encryption method and mode
+    cipher = Cipher(encryption_method, encryption_mode, default_backend())
+    
+    # Create an encryptor
     encryptor = cipher.encryptor()
-    ct = encryptor.update(plaintext) + encryptor.finalize()
-    return(ct)
+    
+    # Encrypt the data
+    ciphertext = encryptor.update(data) + encryptor.finalize()
+    
+    return ciphertext
 
-def decrypt(ciphertext,key, mode):
-    method=algorithms.AES(key)
-    cipher = Cipher(method, mode, default_backend())
+# Function to decrypt data
+def decrypt_data(ciphertext, decryption_key, encryption_mode):
+    # Create an AES encryption method with the provided key
+    encryption_method = algorithms.AES(decryption_key)
+    
+    # Create a cipher with the chosen encryption method and mode
+    cipher = Cipher(encryption_method, encryption_mode, default_backend())
+    
+    # Create a decryptor
     decryptor = cipher.decryptor()
-    pl = decryptor.update(ciphertext) + decryptor.finalize()
-    return(pl)
+    
+    # Decrypt the ciphertext
+    decrypted_data = decryptor.update(ciphertext) + decryptor.finalize()
+    
+    return decrypted_data
 
-def pad(data,size=128):
-    padder = padding.PKCS7(size).padder()
+# Function to pad data
+def pad_data(data, block_size=128):
+    # Create a padder with PKCS7 padding
+    padder = padding.PKCS7(block_size).padder()
+    
+    # Pad the data
     padded_data = padder.update(data)
     padded_data += padder.finalize()
-    return(padded_data)
+    
+    return padded_data
 
-def unpad(data,size=128):
-    padder = padding.PKCS7(size).unpadder()
-    unpadded_data = padder.update(data)
-    unpadded_data += padder.finalize()
-    return(unpadded_data)
+# Function to unpad data
+def unpad_data(data, block_size=128):
+    # Create an unpadder with PKCS7 padding
+    unpadder = padding.PKCS7(block_size).unpadder()
+    
+    # Unpad the data
+    unpadded_data = unpadder.update(data)
+    unpadded_data += unpadder.finalize()
+    
+    return unpadded_data
 
-key = hashlib.sha256(password.encode()).digest()
+# Hash the password using SHA-256 to generate an encryption key
+encryption_key = hashlib.sha256(password.encode()).digest()
 
-print("Before padding: ",plaintext)
+# Print the original plaintext before padding
+print("Original Message: ", original_message)
 
-plaintext=pad(plaintext.encode())
+# Pad the plaintext using PKCS7 padding and print it in hexadecimal format
+padded_plaintext = pad_data(plaintext.encode())
+print("Padded Message (PKCS7): ", binascii.hexlify(bytearray(padded_plaintext)))
 
-print("After padding (CMS): ",binascii.hexlify(bytearray(plaintext)))
+# Encrypt the padded plaintext using AES in ECB mode and print the resulting ciphertext in hexadecimal format
+ciphertext = encrypt_data(padded_plaintext, encryption_key, modes.ECB())
+print("Ciphertext (ECB): ", binascii.hexlify(bytearray(ciphertext)))
 
-ciphertext = encrypt(plaintext,key,modes.ECB())
-print("Cipher (ECB): ",binascii.hexlify(bytearray(ciphertext)))
+# Decrypt the ciphertext using the same key and mode
+decrypted_plaintext = decrypt_data(ciphertext, encryption_key, modes.ECB())
 
-plaintext = decrypt(ciphertext,key,modes.ECB())
-
-plaintext = unpad(plaintext)
-print("  decrypt: ",plaintext.decode())
+# Remove the padding from the decrypted plaintext
+decrypted_plaintext = unpad_data(decrypted_plaintext)
+print("Decrypted Message: ", decrypted_plaintext.decode())
