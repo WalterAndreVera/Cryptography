@@ -7,8 +7,8 @@ import sys
 import binascii
 
 # Define the plaintext message and password
-original_message = 'hello'
-password = 'hello123'
+original_message = input("Enter the plaintext message: ")
+password = input("Enter the password: ")
 
 # Set the plaintext variable to the original message
 plaintext = original_message
