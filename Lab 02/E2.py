@@ -7,8 +7,8 @@ import hashlib
 import binascii
 
 # Define the hexadecimal ciphertext and the encryption key (password)
-ciphertext_hex = '6ee95415aca2b33c'
-password = 'ankle'
+ciphertext_hex = input("Enter the hexadecimal ciphertext: ")
+password = input("Enter the encryption key: ")
 
 # Convert the hexadecimal ciphertext to bytes
 ciphertext = binascii.unhexlify(ciphertext_hex)
